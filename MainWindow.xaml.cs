@@ -40,9 +40,6 @@ namespace FaceRig_Vtuber
             {
                 var pLst = Process.GetProcessesByName("FaceRig");
                 var handle = pLst.First().MainWindowHandle;
-                PointF aa = new PointF();
-                aa.X = 0;
-                aa.Y = 0;
                 while (true)
                 {
                     using (Bitmap img = new Bitmap(640, 480))
