@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -40,21 +41,36 @@ namespace FaceRig_Vtuber
             {
                 var pLst = Process.GetProcessesByName("FaceRig");
                 var handle = pLst.First().MainWindowHandle;
-                Bitmap img = new Bitmap(640, 480);
+                PointF aa = new PointF();
+                aa.X = 0;
+                aa.Y = 0;
                 while (true)
                 {
-                    Graphics memg = Graphics.FromImage(img);
-                    PrintWindow(handle, memg.GetHdc(), 0);
-                    memg.ReleaseHdc();
-                    memg.Dispose();
-                    img.MakeTransparent(Color.FromArgb(0, 255, 0));
-                    ImageView.Source = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(img.GetHbitmap(), IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
-                    await System.Threading.Tasks.Task.Delay(17);
+                    using (Bitmap img = new Bitmap(640, 480))
+                    {
+                        using (Graphics memg = Graphics.FromImage(img))
+                        {
+                            PrintWindow(handle, memg.GetHdc(), 0);
+                            memg.ReleaseHdc();
+                            memg.Dispose();
+                        }
+                        img.MakeTransparent(Color.FromArgb(0, 255, 0));
+                        MemoryStream stream = new MemoryStream();
+                        img.Save(stream,ImageFormat.Png);
+                        BitmapImage bmpImage = new BitmapImage();
+                        bmpImage.BeginInit();
+                        bmpImage.CacheOption = BitmapCacheOption.OnLoad;
+                        bmpImage.StreamSource = stream;
+                        bmpImage.EndInit();
+                        stream.Close();
+                        ImageView.Source = bmpImage;
+                    }
+                    await System.Threading.Tasks.Task.Delay(25);
                 }
             }
-            catch
+            catch (Exception e)
             {
-                MessageBox.Show("FaceRigが起動されていません。");
+                MessageBox.Show("FaceRigが起動されていません。" + e.Message);
                 Close();
             }
         }
@@ -78,9 +94,6 @@ namespace FaceRig_Vtuber
                 StreamWriter stw2 = File.CreateText(Directory.GetCurrentDirectory() + "/Location_L.dat");
                 stw2.WriteLine(Left);
                 stw2.Close();
-                GC.Collect();
-                GC.WaitForFullGCComplete();
-                GC.Collect();
             }
         }
     }
