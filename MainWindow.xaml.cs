@@ -18,7 +18,6 @@ namespace FaceRig_Vtuber
             InitializeComponent();
             MouseLeftButtonDown += (sender, e) => { DragMove(); };
             SavePicture();
-            Restart();
             if (File.Exists(Directory.GetCurrentDirectory() + "/Location_T.dat"))
             {
                 StreamReader str1 = new StreamReader(Directory.GetCurrentDirectory() + "/Location_T.dat");
@@ -71,15 +70,6 @@ namespace FaceRig_Vtuber
             catch (Exception e)
             {
                 MessageBox.Show("FaceRigが起動されていません。" + e.Message);
-                Close();
-            }
-        }
-        async void Restart()
-        {
-            while (true)
-            {
-                await System.Threading.Tasks.Task.Delay(300000);
-                Process.Start(Directory.GetCurrentDirectory() + "/FaceRig_Vtuber.exe", "");
                 Close();
             }
         }
