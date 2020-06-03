@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Media.Imaging;
 
@@ -11,7 +12,8 @@ namespace FaceRig_Vtuber
 {
     public partial class MainWindow : Window
     {
-        [System.Runtime.InteropServices.DllImport("User32.dll")]
+        [DllImport("User32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
         private extern static bool PrintWindow(IntPtr hwnd, IntPtr hDC, uint nFlags);
         public MainWindow()
         {
@@ -42,25 +44,21 @@ namespace FaceRig_Vtuber
                 var handle = pLst.First().MainWindowHandle;
                 while (true)
                 {
-                    using (Bitmap img = new Bitmap(640, 480))
-                    {
-                        using (Graphics memg = Graphics.FromImage(img))
-                        {
-                            PrintWindow(handle, memg.GetHdc(), 0);
-                            memg.ReleaseHdc();
-                            memg.Dispose();
-                        }
-                        img.MakeTransparent(Color.FromArgb(0, 255, 0));
-                        MemoryStream stream = new MemoryStream();
-                        img.Save(stream,ImageFormat.Png);
-                        BitmapImage bmpImage = new BitmapImage();
-                        bmpImage.BeginInit();
-                        bmpImage.CacheOption = BitmapCacheOption.OnLoad;
-                        bmpImage.StreamSource = stream;
-                        bmpImage.EndInit();
-                        stream.Close();
-                        ImageView.Source = bmpImage;
-                    }
+                    Bitmap img = new Bitmap(640, 480);
+                    Graphics memg = Graphics.FromImage(img);
+                    PrintWindow(handle, memg.GetHdc(), 0);
+                    memg.Dispose();
+                    img.MakeTransparent(Color.FromArgb(0, 255, 0));
+                    MemoryStream stream = new MemoryStream();
+                    img.Save(stream, ImageFormat.Png);
+                    img.Dispose();
+                    BitmapImage bmpImage = new BitmapImage();
+                    bmpImage.BeginInit();
+                    bmpImage.CacheOption = BitmapCacheOption.OnLoad;
+                    bmpImage.StreamSource = stream;
+                    bmpImage.EndInit();
+                    stream.Close();
+                    ImageView.Source = bmpImage;
                     await System.Threading.Tasks.Task.Delay(25);
                 }
             }
